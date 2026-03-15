@@ -243,11 +243,7 @@ async function main() {
   );
 
   for (const result of results) {
-    if (result.status === "fulfilled") {
-      allOccupations.push(...result.value);
-    } else {
-      console.error("Batch item failed:", result.reason);
-    }
+    allOccupations.push(...result);
   }
 
   console.log(`\nTotal occupations generated: ${allOccupations.length}`);

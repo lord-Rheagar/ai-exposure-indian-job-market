@@ -9,6 +9,18 @@ interface TreemapProps {
   onHover: (data: Occupation | null, event: React.MouseEvent | null) => void;
 }
 
+interface CategoryNode {
+  name: string;
+  children: Occupation[];
+}
+
+interface RootNode {
+  name: string;
+  children: CategoryNode[];
+}
+
+type TreemapLeaf = d3.HierarchyRectangularNode<Occupation | CategoryNode | RootNode>;
+
 export function Treemap({ data, onHover }: TreemapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -16,7 +28,7 @@ export function Treemap({ data, onHover }: TreemapProps) {
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         setDimensions({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
@@ -31,7 +43,7 @@ export function Treemap({ data, onHover }: TreemapProps) {
     if (!dimensions.width || !dimensions.height || data.length === 0) return [];
 
     const grouped = d3.group(data, (d) => d.category);
-    const hierarchyData = {
+    const hierarchyData: RootNode = {
       name: "root",
       children: Array.from(grouped, ([key, values]) => ({
         name: key,
@@ -40,11 +52,11 @@ export function Treemap({ data, onHover }: TreemapProps) {
     };
 
     const root = d3
-      .hierarchy(hierarchyData)
-      .sum((d: any) => d.jobs || 0)
+      .hierarchy<RootNode | CategoryNode | Occupation>(hierarchyData)
+      .sum((d) => ("jobs" in d ? d.jobs : 0))
       .sort((a, b) => (b.value || 0) - (a.value || 0));
 
-    d3.treemap()
+    d3.treemap<RootNode | CategoryNode | Occupation>()
       .size([dimensions.width, dimensions.height])
       .paddingTop(28)
       .paddingRight(2)
@@ -53,12 +65,12 @@ export function Treemap({ data, onHover }: TreemapProps) {
       .paddingInner(2)
       .round(true)(root);
 
-    return root.children || [];
+    return (root.children || []) as d3.HierarchyRectangularNode<CategoryNode>[];
   }, [data, dimensions]);
 
   return (
     <div className="relative w-full h-full p-4 overflow-hidden" ref={containerRef}>
-      {rootNodes.map((categoryNode: any) => {
+      {rootNodes.map((categoryNode) => {
         const { x0, y0, x1, y1, data: catData, children } = categoryNode;
         const width = x1 - x0;
         const height = y1 - y0;
@@ -85,12 +97,13 @@ export function Treemap({ data, onHover }: TreemapProps) {
               </span>
             </div>
             
-            {children?.map((jobNode: any) => {
-              const jX0 = jobNode.x0 - x0;
-              const jY0 = jobNode.y0 - y0;
-              const jW = jobNode.x1 - jobNode.x0;
-              const jH = jobNode.y1 - jobNode.y0;
-              const job: Occupation = jobNode.data;
+            {children?.map((jobNode) => {
+              const typedNode = jobNode as unknown as d3.HierarchyRectangularNode<Occupation>;
+              const jX0 = typedNode.x0 - x0;
+              const jY0 = typedNode.y0 - y0;
+              const jW = typedNode.x1 - typedNode.x0;
+              const jH = typedNode.y1 - typedNode.y0;
+              const job = typedNode.data;
 
               if (jW < 2 || jH < 2) return null;
 
