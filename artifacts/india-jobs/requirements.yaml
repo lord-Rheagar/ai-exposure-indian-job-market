@@ -1,0 +1,13 @@
+packages:
+  "d3": "For treemap layout calculations"
+  "@types/d3": "TypeScript types for d3"
+  "framer-motion": "For smooth layout animations and transitions"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility function to efficiently merge Tailwind CSS classes"
+  "lucide-react": "Beautiful, consistent icons for the dashboard"
+
+images: []
+
+notes:
+  - API endpoint GET /api/occupations is expected to return Occupation[]
+  - Assuming Indian numbering system formatting is handled via Intl.NumberFormat('en-IN')

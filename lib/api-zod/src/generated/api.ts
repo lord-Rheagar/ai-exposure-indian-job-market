@@ -14,3 +14,22 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns all Indian occupations with AI exposure scores
+ * @summary Get all Indian occupations
+ */
+export const GetOccupationsResponseItem = zod.object({
+  title: zod.string(),
+  slug: zod.string(),
+  category: zod.string(),
+  pay: zod.number().describe("Annual pay in INR"),
+  jobs: zod.number().describe("Number of workers"),
+  outlook: zod.number().describe("Growth outlook percentage"),
+  outlook_desc: zod.string().describe("Growth outlook description"),
+  education: zod.string().describe("Typical education requirement"),
+  exposure: zod.number().describe("AI exposure score 0-10"),
+  exposure_rationale: zod.string().describe("AI exposure reasoning"),
+  url: zod.string().optional().describe("Reference URL"),
+});
+export const GetOccupationsResponse = zod.array(GetOccupationsResponseItem);

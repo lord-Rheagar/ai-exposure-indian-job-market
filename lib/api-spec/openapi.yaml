@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: occupations
+    description: Indian occupation data
 paths:
   /healthz:
     get:
@@ -24,6 +26,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /occupations:
+    get:
+      operationId: getOccupations
+      tags: [occupations]
+      summary: Get all Indian occupations
+      description: Returns all Indian occupations with AI exposure scores
+      responses:
+        "200":
+          description: List of occupations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Occupation"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +50,47 @@ components:
           type: string
       required:
         - status
-
+    Occupation:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        pay:
+          type: number
+          description: Annual pay in INR
+        jobs:
+          type: number
+          description: Number of workers
+        outlook:
+          type: number
+          description: Growth outlook percentage
+        outlook_desc:
+          type: string
+          description: Growth outlook description
+        education:
+          type: string
+          description: Typical education requirement
+        exposure:
+          type: integer
+          description: AI exposure score 0-10
+        exposure_rationale:
+          type: string
+          description: AI exposure reasoning
+        url:
+          type: string
+          description: Reference URL
+      required:
+        - title
+        - slug
+        - category
+        - pay
+        - jobs
+        - outlook
+        - outlook_desc
+        - education
+        - exposure
+        - exposure_rationale

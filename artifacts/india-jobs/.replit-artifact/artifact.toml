@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Exposure - Indian Job Market"
+version = "1.0.0"
+id = "artifacts/india-jobs"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 23250
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/india-jobs run dev"
+
+[services.env]
+PORT = "23250"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/india-jobs", "run", "build"]
+publicDir = "artifacts/india-jobs/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

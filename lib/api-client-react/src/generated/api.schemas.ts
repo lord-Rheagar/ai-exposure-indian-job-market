@@ -8,3 +8,25 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Occupation {
+  title: string;
+  slug: string;
+  category: string;
+  /** Annual pay in INR */
+  pay: number;
+  /** Number of workers */
+  jobs: number;
+  /** Growth outlook percentage */
+  outlook: number;
+  /** Growth outlook description */
+  outlook_desc: string;
+  /** Typical education requirement */
+  education: string;
+  /** AI exposure score 0-10 */
+  exposure: number;
+  /** AI exposure reasoning */
+  exposure_rationale: string;
+  /** Reference URL */
+  url?: string;
+}

@@ -15,18 +15,23 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Frontend**: React + Vite + TailwindCSS + D3.js + Framer Motion
+- **AI Integration**: OpenAI via Replit AI Integrations (for data generation)
 
 ## Structure
 
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── india-jobs/         # React+Vite frontend (AI Exposure dashboard)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
+│   ├── db/                 # Drizzle ORM schema + DB connection
+│   └── integrations/       # AI integration libraries
+│       └── openai-ai-server/ # OpenAI integration for server-side use
 ├── scripts/                # Utility scripts (single workspace package)
 │   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
 ├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
@@ -34,6 +39,35 @@ artifacts-monorepo/
 ├── tsconfig.json           # Root TS project references
 └── package.json            # Root package with hoisted devDeps
 ```
+
+## Application: AI Exposure of the Indian Job Market
+
+A full-stack web app visualizing how susceptible ~142 Indian occupations are to AI automation, inspired by karpathy.ai/jobs but focused on the Indian economy using PLFS/NCO 2015 data.
+
+### Features
+- **Interactive D3 Treemap**: Area = number of workers, color = AI exposure score (green=low, red=high)
+- **Exposure vs Outlook Column View**: Stacked columns by exposure score (0-10)
+- **Sidebar Stats**: Total workers (76.7Cr), weighted avg exposure (2.4), breakdowns by pay/education
+- **Hover Tooltips**: Occupation details with AI-generated rationale for exposure score
+- **Indian Formatting**: INR currency (₹), Indian number system (lakhs/crores)
+- **Dark Theme**: #111 background matching karpathy.ai/jobs design
+
+### Data
+- 142 Indian occupations across 15 categories (IT, healthcare, agriculture, manufacturing, etc.)
+- ~767M total workers with realistic PLFS employment data
+- AI exposure scores (0-10) with AI-generated rationale for each occupation
+- Data stored as static JSON at `artifacts/api-server/src/data/occupations.json`
+- Served via `GET /api/occupations` endpoint
+
+### Key Files
+- `artifacts/india-jobs/src/pages/Dashboard.tsx` - Main dashboard page
+- `artifacts/india-jobs/src/components/Treemap.tsx` - D3 treemap visualization
+- `artifacts/india-jobs/src/components/Columns.tsx` - Column/bar chart view
+- `artifacts/india-jobs/src/components/Sidebar.tsx` - Stats sidebar
+- `artifacts/india-jobs/src/components/Tooltip.tsx` - Hover tooltip
+- `artifacts/india-jobs/src/lib/utils.ts` - Formatting utilities (INR, crores/lakhs, exposure colors)
+- `artifacts/api-server/src/routes/occupations.ts` - API route serving occupation data
+- `artifacts/api-server/src/data/occupations.json` - 142 occupations dataset
 
 ## TypeScript & Composite Projects
 
@@ -56,11 +90,21 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 
 - Entry: `src/index.ts` — reads `PORT`, starts Express
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
+- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`); `src/routes/occupations.ts` exposes `GET /occupations` (full path: `/api/occupations`)
 - Depends on: `@workspace/db`, `@workspace/api-zod`
 - `pnpm --filter @workspace/api-server run dev` — run the dev server
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
 - Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+
+### `artifacts/india-jobs` (`@workspace/india-jobs`)
+
+React + Vite frontend for the AI Exposure dashboard. Uses D3.js for treemap visualization, Framer Motion for animations, TanStack Query for data fetching.
+
+- Entry: `src/main.tsx` — React app root
+- Pages: `src/pages/Dashboard.tsx` — main dashboard with treemap/columns views
+- Components: Treemap, Columns, Sidebar, Tooltip
+- Hooks: `src/hooks/use-occupations.ts` — fetches occupation data from API
+- Depends on: `@workspace/api-client-react`
 
 ### `lib/db` (`@workspace/db`)
 
@@ -85,7 +129,7 @@ Run codegen: `pnpm --filter @workspace/api-spec run codegen`
 
 ### `lib/api-zod` (`@workspace/api-zod`)
 
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
+Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`, `GetOccupationsResponse`). Used by `api-server` for response validation.
 
 ### `lib/api-client-react` (`@workspace/api-client-react`)
 
